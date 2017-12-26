@@ -18,8 +18,9 @@ function http($client, $limit)
         $tracesize = 0;
         try {
             $config = [
+                //'allow_redirects' => ['max' => 1,  'strict' => true],
             ];
-            $response = $client->request('GET', 'https://httpbin.org/status/400', $config);
+            $response = $client->request('GET', 'https://httpbin.org/status/500', $config);
         } catch (\Exception $e) {
             //xdebug_debug_zval('e');
             //file_put_contents('/tmp/debug', print_r($e, true));

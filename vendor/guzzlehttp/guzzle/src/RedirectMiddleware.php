@@ -67,10 +67,14 @@ class RedirectMiddleware
             return $fn($request, $options);
         }
 
+        $closure = static function (ResponseInterface $response)
+        //use ($request, $options)
+        {
+            return self::checkRedirect(null, null, $response);
+        };
+
         return $fn($request, $options)
-            ->then(function (ResponseInterface $response) use ($request, $options) {
-                return $this->checkRedirect($request, $options, $response);
-            });
+            ->then($closure);
     }
 
     /**
@@ -81,18 +85,19 @@ class RedirectMiddleware
      * @return ResponseInterface|PromiseInterface
      */
     public function checkRedirect(
-        RequestInterface $request,
-        array $options,
-        ResponseInterface $response
+        RequestInterface $request = null,
+        array $options = null,
+        ResponseInterface $response = null
     ) {
+        return $response;
         if (substr($response->getStatusCode(), 0, 1) != '3'
             || !$response->hasHeader('Location')
         ) {
             return $response;
         }
 
-        $this->guardMax($request, $options);
-        $nextRequest = $this->modifyRequest($request, $options, $response);
+        self::guardMax($request, $options);
+        $nextRequest = self::modifyRequest($request, $options, $response);
 
         if (isset($options['allow_redirects']['on_redirect'])) {
             call_user_func(
@@ -104,11 +109,11 @@ class RedirectMiddleware
         }
 
         /** @var PromiseInterface|ResponseInterface $promise */
-        $promise = $this($nextRequest, $options);
+        //$promise = $new($nextRequest, $options);
 
         // Add headers to be able to track history of redirects.
         if (!empty($options['allow_redirects']['track_redirects'])) {
-            return $this->withTracking(
+            return self::withTracking(
                 $promise,
                 (string) $nextRequest->getUri(),
                 $response->getStatusCode()
@@ -118,7 +123,7 @@ class RedirectMiddleware
         return $promise;
     }
 
-    private function withTracking(PromiseInterface $promise, $uri, $statusCode)
+    private static function withTracking(PromiseInterface $promise, $uri, $statusCode)
     {
         return $promise->then(
             function (ResponseInterface $response) use ($uri, $statusCode) {
@@ -135,7 +140,7 @@ class RedirectMiddleware
         );
     }
 
-    private function guardMax(RequestInterface $request, array &$options)
+    private static function guardMax(RequestInterface $request, array &$options)
     {
         $current = isset($options['__redirect_count'])
             ? $options['__redirect_count']
@@ -158,7 +163,7 @@ class RedirectMiddleware
      *
      * @return RequestInterface
      */
-    public function modifyRequest(
+    public static function modifyRequest(
         RequestInterface $request,
         array $options,
         ResponseInterface $response
@@ -178,7 +183,7 @@ class RedirectMiddleware
             $modify['body'] = '';
         }
 
-        $modify['uri'] = $this->redirectUri($request, $response, $protocols);
+        $modify['uri'] = self::redirectUri($request, $response, $protocols);
         Psr7\rewind_body($request);
 
         // Add the Referer header if it is told to do so and only
@@ -209,7 +214,7 @@ class RedirectMiddleware
      *
      * @return UriInterface
      */
-    private function redirectUri(
+    private static function redirectUri(
         RequestInterface $request,
         ResponseInterface $response,
         array $protocols

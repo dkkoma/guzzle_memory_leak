@@ -51,13 +51,13 @@ final class Middleware
      */
     public static function httpErrors()
     {
-        return function (callable $handler) {
-            return function ($request, array $options) use ($handler) {
+        return static function (callable $handler) {
+            return static function ($request, array $options) use ($handler) {
                 if (empty($options['http_errors'])) {
                     return $handler($request, $options);
                 }
                 return $handler($request, $options)->then(
-                    function (ResponseInterface $response) use ($request, $handler) {
+                    static function (ResponseInterface $response) use ($request) {
                         $code = $response->getStatusCode();
                         if ($code < 400) {
                             return $response;
