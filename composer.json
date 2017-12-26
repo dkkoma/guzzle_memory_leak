@@ -1,0 +1,12 @@
+{
+    "name": "d-komazaki/guzzle_memory_leak",
+    "authors": [
+        {
+            "name": "dkkoma",
+            "email": "daisuke_komazaki+github@voyagegroup.com"
+        }
+    ],
+    "require": {
+        "guzzlehttp/guzzle": "^6.3"
+    }
+}
