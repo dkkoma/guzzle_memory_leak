@@ -11,6 +11,8 @@ use GuzzleHttp\Middleware;
 
 $stack = new HandlerStack();
 $stack->setHandler(new CurlHandler());
+// https://github.com/guzzle/guzzle/blob/master/src/HandlerStack.php#L41 とredirectとhttpErrorsの順番を変えている
+// どちらか前後しても影響はしない
 $stack->push(Middleware::redirect(), 'allow_redirects');
 $stack->push(Middleware::httpErrors(), 'http_errors');
 $stack->push(Middleware::cookies(), 'cookies');
