@@ -4,9 +4,21 @@ require 'vendor/autoload.php';
 
 use GuzzleHttp\Psr7;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Handler\CurlHandler;
+use GuzzleHttp\Middleware;
 
 
-$client = new GuzzleHttp\Client;
+$stack = new HandlerStack();
+$stack->setHandler(new CurlHandler());
+// https://github.com/guzzle/guzzle/blob/master/src/HandlerStack.php#L41 とredirectとhttpErrorsの順番を変えている
+// どちらか前後しても影響はしない
+$stack->push(Middleware::redirect(), 'allow_redirects');
+$stack->push(Middleware::httpErrors(), 'http_errors');
+$stack->push(Middleware::cookies(), 'cookies');
+$stack->push(Middleware::prepareBody(), 'prepare_body');
+
+$client = new GuzzleHttp\Client(['handler' => $stack]);
 for ($i = 0; $i < 10; $i++)
 {
     http($client, 10);
